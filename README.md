@@ -10,15 +10,12 @@ pip install aioagent
 ## Example
 
 ```python
-from aioagent import *
+from aioagent import agent, run_agents
 
 @agent
-def echo_upper():
+async def echo_upper():
   with get_message() as (sender, msg):
       send(sender, msg.upper())
-      
-p = echo_upper()
 
-await send(p, "Hello World")
-print(await recv())
+run_agents()
 ```
