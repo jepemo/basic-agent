@@ -36,10 +36,6 @@ class AgentMixin(object):
         self.args = None
         self.kwargs = None
 
-    #def next_pid(self, parent_pid):
-    #    self.next_pid += 1
-    #    return '{0}-{1}'.format(self.parent_pid, self.next_pid)
-
     def create_agent(self, agent_fn, *args, **kwargs):
         agent = AgentContext(self.loop, debug=self.debug)
 
@@ -52,10 +48,10 @@ class AgentMixin(object):
         agent.kwargs = kwargs
         agent.parent_ctx = self
 
-        logger.debug("Agent created: {0}".format(agent.pid))
-
         self.agents[pid] = agent
         self.next_pid += 1
+        
+        logger.debug("Agent created: {0}".format(pid))
 
         return pid
         
@@ -80,21 +76,6 @@ class AgentMixin(object):
                     logger.warning("PID {0} not FOUND".format(pid))
                 else:
                     await self.parent.send(pid, msg, sender=sender)
-                    
-                
-            """"
-            print(pid, " " , self.parent_pid)
-            if pid == self.parent_pid:
-                print("IS PARENT ID")
-                
-            else:
-                print("AA", pid)
-                print(self.agents)
-                
-                print("SENDING TO", pid, " ", agent.pid)
-                # Todo: if agent is None....
-            """
-                
             
     def _find_child_path(self, pid):
         for apid, agent in self.agents.items():
@@ -111,10 +92,7 @@ class AgentContext(AgentMixin):
         pid = self.create_agent(agent_fn, *args, **kwargs)
 
         agent = self.agents[pid]
-        # await agent.execute()
         asyncio.ensure_future(agent.execute())
-        #self.loop.call_soon(agent.execute)
-        #asyncio.sleep(5)
 
         return pid
 
@@ -136,6 +114,14 @@ class RootContext(ContextDecorator, AgentMixin):
     def start(self, agent_fn, *args, **kwargs):
         pid = self.create_agent(agent_fn, *args, **kwargs)
         return pid
+        
+    def send():
+        # TODO
+        pass
+        
+    def recv():
+        # TODO
+        pass
 
     def __enter__(self):
         return self

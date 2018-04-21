@@ -4,7 +4,7 @@ Minimal &amp; Simple Agent Engine for Python
 ## Getting started
 
 ```bash
-pip install bagent
+# Not yet: pip install bagent
 ```
 
 ## Example
@@ -12,13 +12,20 @@ pip install bagent
 ```python
 from bagent import *
 
-async def echo_upper():
-    with get_message() as (sender, msg):
-        if match(msg, ("upper", quote(text))):
-            send(sender, text.upper())
-        elif match(msg, ("lower", quote(text))):
-            send(sender, text.lower())
+async def agent1(ctx, msg):
+    print(msg)
 
-run(echo_upper)
+with get_agent_context() as ctx:
+    ctx.start(agent1, "Hello World")
 ```
+
+## Features
+- **asyncio** integration
+- Simple message passing model
+
+
+## TODO
+  - Send/recv messages from root context
+  - Simple-pattern matching
+  - Benchmarks
 
