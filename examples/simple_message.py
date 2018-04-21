@@ -16,16 +16,16 @@
 
 from bagent import *
 
-async def agent(ctx):
+async def agent2(ctx):
     (sender, msg) = await ctx.recv()
     await ctx.send(sender, "Hello {0}".format(msg))
 
-async def main(ctx):
-    pid = await ctx.start(agent)
+async def agent1(ctx):
+    pid = await ctx.start(agent2)
 
-    await ctx.send(pid, "Hello World")
+    await ctx.send(pid, "World")
     (_, msg) = await ctx.recv()
     print(msg)
 
 with get_agent_context(debug=True) as ctx:
-    ctx.start(main)
+    ctx.start(agent1)

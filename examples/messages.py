@@ -16,14 +16,21 @@
 
 from bagent import *
 
-async def server():
-    pass
+MAX_REQUESTS = 5
 
-async def client(msg):
-    print(msg)
+async def server(ctx):
+    counter = 0
+    while counter < MAX_REQUESTS:
+        (sender, msg) = await ctx.recv()
+        print("Received:", msg, "from", sender)
+        counter += 1
+    print("Finishing server...")
 
-with get_agent_context() as ctx:
-    ctx.run(server)
+async def client(ctx, pid_server, msg):
+    await ctx.send(pid_server, msg)
 
-    for i in range(0, 5):
-        ctx.run(client, i)
+with get_agent_context(debug=False) as ctx:
+    pid_server = ctx.start(server)
+
+    for i in range(0, MAX_REQUESTS):
+        ctx.start(client, pid_server, i)

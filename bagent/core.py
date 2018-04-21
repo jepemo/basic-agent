@@ -25,26 +25,28 @@ class AgentMixin(object):
     def __init__(self, loop, debug):
         self.next_pid = 1
         self.parent_ctx = None
+        self.parent = None
         self.parent_pid = 0
         self.agents = {}
         self.loop = loop
         self.debug = debug
-        self.pid = 1
+        self.pid = 0
         self.messages = asyncio.Queue(loop=loop)
         self.fn = None
         self.args = None
         self.kwargs = None
 
-    def next_pid(self, parent_pid):
-        self.next_pid += 1
-        return '{0}-{1}'.format(self.parent_pid, self.next_pid)
+    #def next_pid(self, parent_pid):
+    #    self.next_pid += 1
+    #    return '{0}-{1}'.format(self.parent_pid, self.next_pid)
 
     def create_agent(self, agent_fn, *args, **kwargs):
         agent = AgentContext(self.loop, debug=self.debug)
 
         pid = '{0}-{1}'.format(self.pid, self.next_pid)
-        agent.parent_pid = self.pid
         agent.pid = pid
+        agent.parent = self
+        agent.parent_pid = self.pid
         agent.fn = agent_fn
         agent.args = args
         agent.kwargs = kwargs
@@ -53,10 +55,12 @@ class AgentMixin(object):
         logger.debug("Agent created: {0}".format(agent.pid))
 
         self.agents[pid] = agent
+        self.next_pid += 1
 
         return pid
         
     async def recv(self):
+        logger.debug("{0} waiting for message...".format(self.pid))
         return await self.messages.get()    
         
     async def send(self, pid, msg, sender=None):
@@ -69,8 +73,28 @@ class AgentMixin(object):
             await self.messages.put((sender, msg))
         else:
             agent = self._find_child_path(pid)
-            # Todo: if agent is None....
-            await agent.send(pid, msg, sender=sender)
+            if agent:
+                await agent.send(pid, msg, sender=sender)
+            else:
+                if self.pid == 0:
+                    logger.warning("PID {0} not FOUND".format(pid))
+                else:
+                    await self.parent.send(pid, msg, sender=sender)
+                    
+                
+            """"
+            print(pid, " " , self.parent_pid)
+            if pid == self.parent_pid:
+                print("IS PARENT ID")
+                
+            else:
+                print("AA", pid)
+                print(self.agents)
+                
+                print("SENDING TO", pid, " ", agent.pid)
+                # Todo: if agent is None....
+            """
+                
             
     def _find_child_path(self, pid):
         for apid, agent in self.agents.items():
@@ -86,7 +110,11 @@ class AgentContext(AgentMixin):
     async def start(self, agent_fn, *args, **kwargs):
         pid = self.create_agent(agent_fn, *args, **kwargs)
 
-        await self.agents[pid].execute()
+        agent = self.agents[pid]
+        # await agent.execute()
+        asyncio.ensure_future(agent.execute())
+        #self.loop.call_soon(agent.execute)
+        #asyncio.sleep(5)
 
         return pid
 
@@ -108,7 +136,6 @@ class RootContext(ContextDecorator, AgentMixin):
     def start(self, agent_fn, *args, **kwargs):
         pid = self.create_agent(agent_fn, *args, **kwargs)
         return pid
-
 
     def __enter__(self):
         return self

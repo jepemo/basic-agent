@@ -1,16 +1,16 @@
-# aio-agent
+# basic-agent
 Minimal &amp; Simple Agent Engine for Python
 
 ## Getting started
 
 ```bash
-pip install aioagent
+pip install bagent
 ```
 
 ## Example
 
 ```python
-from aioagent import *
+from bagent import *
 
 async def echo_upper():
     with get_message() as (sender, msg):
@@ -22,4 +22,3 @@ async def echo_upper():
 run(echo_upper)
 ```
 
-Mirar: https://docs.python.org/3/library/contextlib.html
