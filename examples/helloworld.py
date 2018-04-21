@@ -1,4 +1,4 @@
-from aioagent import *
+from bagent import *
 
 async def upper(text):
     return text.upper()

@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from aioagent.core import get_agent_context
+from bagent.core import get_agent_context
 
 __ALL__ = [get_agent_context]

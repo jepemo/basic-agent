@@ -24,7 +24,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='aioagent',
+    name='bagent',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -35,14 +35,14 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/jepemo/aio-agent',
+    url='https://github.com/jepemo/basic-agent',
 
     # Author details
     author='Jeremies Pérez Morata',
     author_email='jeremiespm@gmail.com',
 
     # Choose your license
-    license='GPL-v3',
+    license='MIT',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[

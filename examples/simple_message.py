@@ -1,4 +1,4 @@
-from aioagent import *
+from bagent import *
 
 async def agent(ctx):
     (sender, msg) = await ctx.get_message()
