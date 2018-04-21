@@ -19,31 +19,21 @@ from contextlib import ContextDecorator
 
 logger = logging.getLogger(__name__)
 
-class AgentContext(ContextDecorator):
-    def __init__(self, loop, debug=False):
-        self.loop = loop
-        self.agents = {}
-        self.pid = 0
-        self.parent_ctx = None
-        self.parent_pid = 0
+class AgentMixin(object):
+    def __init__(self, loop, debug):
         self.next_pid = 1
-        self.fn = None
-        self.args = None
-        self.kwargs = None
-        self.messages = asyncio.Queue(loop=loop)
+        self.parent_pid = 0
+        self.agents = {}
+        self.loop = loop
         self.debug = debug
-        self.entered_context = False
+        self.pid = 1
+        self.messages = asyncio.Queue(loop=loop)
 
-        if debug:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.ERROR)
-
-    def _next_pid(self, parent_pid):
+    def next_pid(self, parent_pid):
         self.next_pid += 1
         return '{0}-{1}'.format(self.parent_pid, self.next_pid)
 
-    def run(self, agent_fn, *args, **kwargs):
+    def create_agent(self, agent_fn, *args, **kwargs):
         agent = AgentContext(self.loop, debug=self.debug)
 
         pid = '{0}-{1}'.format(self.pid, self.next_pid)
@@ -58,10 +48,29 @@ class AgentContext(ContextDecorator):
 
         self.agents[pid] = agent
 
+        return pid
+
+
+class AgentContext(AgentMixin):
+    def __init__(self, loop, debug=False):
+        self.loop = loop
+        self.agents = {}
+        self.pid = 0
+        self.parent_ctx = None
+        self.parent_pid = 0
+        self.next_pid = 1
+        self.fn = None
+        self.args = None
+        self.kwargs = None
+        self.messages = asyncio.Queue(loop=loop)
+        self.debug = debug
+        self.entered_context = False
+
+    def run(self, agent_fn, *args, **kwargs):
+        pid = self.create_agent(agent_fn, *args, **kwargs)
+
         if not self.entered_context:
             self.loop.run_until_complete(asyncio.wait([agent.execute()]))
-
-        self.next_pid += 1
 
         return pid
 
@@ -88,7 +97,7 @@ class AgentContext(ContextDecorator):
                 return agent
         return None
 
-    async def get_message(self):
+    async def recv(self):
         return await self.messages.get()
 
     def __enter__(self):
@@ -105,5 +114,27 @@ class AgentContext(ContextDecorator):
         self.loop.close()
         return False
 
+class RootContext(ContextDecorator, AgentMixin):
+    def __init__(self, loop, debug=False):
+        if debug:
+            logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.ERROR)
+
+    def start(self, agent_fn, *args, **kwargs):
+        pass
+
+    def send():
+        pass
+
+    def recv():
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return false
+
 def get_agent_context(loop=asyncio.get_event_loop(), debug=False):
-    return AgentContext(loop, debug=debug)
+    return RootContext(loop, debug=debug)
