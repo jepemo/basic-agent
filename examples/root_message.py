@@ -19,10 +19,8 @@ from bagent import *
 async def agent1(ctx):
 	await ctx.send(0, "Hello R00t!")
 
-
 with get_agent_context() as ctx:
 	ctx.start(agent1)
-	
+
 	(sender, msg) = ctx.recv()
 	print("Message {0} received from {1}".format(msg, sender))
-	

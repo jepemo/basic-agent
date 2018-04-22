@@ -17,20 +17,58 @@
 
 import asyncio
 import logging
+import re
 from contextlib import ContextDecorator
 
 logger = logging.getLogger(__name__)
+
+class MessageHandler(object):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def match_int(self):
+        return isinstance(self.msg, int)
+    def match_str(self):
+        return isinstance(self.msg, str)
+    def match_float(self):
+        return isinstance(self.msg, float)
+    def match_re(self, expr):
+        if not isinstance(self.msg, str):
+            return False
+        else:
+            p = re.compile(expr)
+            return p.match(self.msg) is not None    
+    def match_obj_type(self, clazz):
+        return isinstance(self.msg, clazz)
+
+class MessageContext:
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    def __enter__(self):
+        raise TypeError("Use async with instead")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass # pragma: no cover
+
+    async def __aenter__(self):
+        (sender, msg) = await self.ctx.recv()
+        return (sender, MessageHandler(msg))
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return False
 
 class AgentMixin(object):
     def __init__(self, loop, debug):
         self.next_pid = 1
         self.parent_ctx = None
         self.parent = None
-        self.parent_pid = 0
+        self.parent_pid = '0'
         self.agents = {}
         self.loop = loop
         self.debug = debug
-        self.pid = 0
+        self.pid = '0'
+
         self.messages = asyncio.Queue(loop=loop)
         self.fn = None
         self.args = None
@@ -50,21 +88,24 @@ class AgentMixin(object):
 
         self.agents[pid] = agent
         self.next_pid += 1
-        
+
         logger.debug("Agent created: {0}".format(pid))
 
         return pid
-        
+
     async def recv(self):
         logger.debug("{0} waiting for message...".format(self.pid))
-        return await self.messages.get()    
-        
+        return await self.messages.get()
+
+    def get_message(self):
+        return MessageContext(self)
+
     async def send(self, pid, msg, sender=None):
         if not sender:
             sender = self.pid
-        
+
         logger.debug("From {0}, sending {1} to {2}".format(sender, str(msg), pid))
-        
+
         if self.pid == pid:
             await self.messages.put((sender, msg))
         else:
@@ -76,7 +117,7 @@ class AgentMixin(object):
                     logger.warning("PID {0} not FOUND".format(pid))
                 else:
                     await self.parent.send(pid, msg, sender=sender)
-            
+
     def _find_child_path(self, pid):
         for apid, agent in self.agents.items():
             if apid.startswith(pid):
@@ -105,23 +146,21 @@ class RootContext(ContextDecorator, AgentMixin):
     def __init__(self, loop, debug=False):
         ContextDecorator.__init__(self)
         AgentMixin.__init__(self, loop, debug)
-        
+
         if debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.ERROR)
-            
+
     def start(self, agent_fn, *args, **kwargs):
         pid = self.create_agent(agent_fn, *args, **kwargs)
         return pid
-        
-    def send():
-        # TODO
-        pass
-        
-    def recv():
-        # TODO
-        pass
+
+    def send(self):
+        raise Exception("Not implemented")
+
+    def recv(self):
+        raise Exception("Not implemented")
 
     def __enter__(self):
         return self
@@ -131,7 +170,6 @@ class RootContext(ContextDecorator, AgentMixin):
         self.loop.run_until_complete(asyncio.wait(tasks))
         self.loop.close()
         return False
-
 
 def get_agent_context(loop=asyncio.get_event_loop(), debug=False):
     return RootContext(loop, debug=debug)
