@@ -23,7 +23,8 @@ from contextlib import ContextDecorator
 logger = logging.getLogger(__name__)
 
 class MessageHandler(object):
-    def __init__(self, msg, sender):
+    def __init__(self, msg, sender, ctx):
+        self.ctx = ctx
         self.msg = msg
         self.sender = sender
 
@@ -42,6 +43,12 @@ class MessageHandler(object):
     def is_type(self, clazz):
         return isinstance(self.msg, clazz)
 
+    def respond(self, resp_msg):
+        self.respond_to(self.sender, resp_msg)
+
+    def respond_to(self, resp_pid, resp_msg):
+        self.ctx.send(resp_pid, resp_msg)
+
 class MessageContext:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -54,7 +61,7 @@ class MessageContext:
 
     async def __aenter__(self):
         (sender, msg) = await self.ctx.recv()
-        return MessageHandler(msg, sender)
+        return MessageHandler(msg, sender, self.ctx)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         return False
