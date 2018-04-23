@@ -26,14 +26,14 @@ async def receiver(ctx):
     await ctx.start(agent_sender, ctx.pid)
 
     while True:
-        async with ctx.get_message() as (sender, m):
-            if m.match_int():
+        async with ctx.get_message() as m:
+            if m.is_int():
                 print("Integer value:", m.msg)
-            elif m.match_re('[0-9]+'):
+            elif m.is_re('[0-9]+'):
                 print("RE:", m.msg)
-            elif m.match_str():
+            elif m.is_str():
                 print("String value:", m.msg)
-            elif m.match_float():
+            elif m.is_float():
                 print("Float value:", m.msg)
                 break
 

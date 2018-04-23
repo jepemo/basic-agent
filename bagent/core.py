@@ -23,22 +23,23 @@ from contextlib import ContextDecorator
 logger = logging.getLogger(__name__)
 
 class MessageHandler(object):
-    def __init__(self, msg):
+    def __init__(self, msg, sender):
         self.msg = msg
+        self.sender = sender
 
-    def match_int(self):
-        return isinstance(self.msg, int)
-    def match_str(self):
-        return isinstance(self.msg, str)
-    def match_float(self):
-        return isinstance(self.msg, float)
-    def match_re(self, expr):
-        if not isinstance(self.msg, str):
+    def is_int(self):
+        return self.is_type(int)
+    def is_str(self):
+        return self.is_type(str)
+    def is_float(self):
+        return self.is_type(float)
+    def is_re(self, expr):
+        if not self.is_type(str):
             return False
         else:
             p = re.compile(expr)
-            return p.match(self.msg) is not None    
-    def match_obj_type(self, clazz):
+            return p.match(self.msg) is not None
+    def is_type(self, clazz):
         return isinstance(self.msg, clazz)
 
 class MessageContext:
@@ -53,7 +54,7 @@ class MessageContext:
 
     async def __aenter__(self):
         (sender, msg) = await self.ctx.recv()
-        return (sender, MessageHandler(msg))
+        return MessageHandler(msg, sender)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         return False
