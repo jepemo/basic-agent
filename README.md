@@ -7,7 +7,6 @@ Minimal &amp; Simple Agent Engine for Python
   - [Agent creation](#agent-creation)
   - [Message passing](#message-passing)
   - [Pattern matching](#pattern-matching)
-- [Benchmark](#benchmark)
 
 
 ## Getting started
@@ -159,11 +158,3 @@ async def master(ctx):
 # 2
 # 3
 ```
-
-## Benchmark
-
-Machine: i5-6500 (3.20GHz) / 16GB RAM
-
-| Example   | 1          | 10         | 100      | 1000    | 10000   | 100000    |
-| --------- | ---------- | ---------- | -------- | ------- | ------- | --------- |
-| PING-PONG | 0.00044 s. | 0.0018 s.  | 0.012 s. | 0.13 s. | 4.96 s. | 11.3 min. |

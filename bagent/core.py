@@ -136,17 +136,37 @@ class AgentMixin(object):
 class AgentContext(AgentMixin):
     def __init__(self, loop, debug=False):
         AgentMixin.__init__(self, loop, debug)
+        self.running_agents = 0
+
+    def _decr_children_count(self, fn):
+        async def func(*args, **kwargs):
+            await fn(*args, **kwargs)
+            self.running_agents -= 1
+            logger.debug("Agent terminated: {0}".format(self.pid))
+        return func
 
     async def start(self, agent_fn, *args, **kwargs):
+        agent_fn = self._decr_children_count(agent_fn)
+
         pid = self.create_agent(agent_fn, *args, **kwargs)
 
         agent = self.agents[pid]
         asyncio.ensure_future(agent.execute())
 
+        self.running_agents += 1
+
         return pid
+
+    def _wait_children(self, fn):
+        async def func(*args, **kwargs):
+            await fn(*args, **kwargs)
+            while self.running_agents > 0:
+                await asyncio.sleep(1)
+        return func
 
     async def execute(self):
         logger.debug("Starting agent: {0}".format(self.pid))
+        self.fn = self._wait_children(self.fn)
         await self.fn(self, *self.args, **self.kwargs)
 
 
