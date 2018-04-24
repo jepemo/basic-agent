@@ -1,6 +1,8 @@
 # basic-agent
 Minimal &amp; Simple Agent Engine for Python
 
+[![Build Status](https://travis-ci.org/jepemo/basic-agent.svg?branch=master)](https://travis-ci.org/jepemo/basic-agent)
+
 - [Getting started](#getting-started)
 - [Features](#features)
 - [Documentation](#documentation)
