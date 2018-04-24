@@ -1,6 +1,15 @@
 # basic-agent
 Minimal &amp; Simple Agent Engine for Python
 
+- [Getting started](#getting-started)
+- [Features](#features)
+- [Documentation](#documentation)
+  - [Agent creation](#agent-creation)
+  - [Message passing](#message-passing)
+  - [Pattern matching](#pattern-matching)
+- [Benchmark](#benchmark)
+
+
 ## Getting started
 
 ### Installation
@@ -92,9 +101,9 @@ async def master(ctx):
 
 There are two ways to receive a message. With the simple recv and with the *message context*. You can see recv case in the above example.
 
-For the message context you need the agent context:
+For the *message context* you need the agent context:
 
-```
+```python
 async def slave(ctx):
     async with ctx.get_message() as m:
         print("Message {0} received from {1}".format(m.msg, m.sender))
@@ -103,6 +112,58 @@ async def slave(ctx):
 
 ### Pattern matching
 
+When you receive a message with the *message context* you can use it to facilitate the message processing. This provides several pattern-matching utilities.
+
+The most simple are the type checkers:
+ - is_str : Check if the message is a string
+ - is_float : Check if the message is a float
+ - is_int : Check if the message is an integer
+ - is_type(type T) : Check if the message is from type T
+ - is_re(re string) : Check if the message matches with the regular expresion string.
+
+For example:
+```python
+
+async def slave(ctx):
+  async with get_message() as m:
+    if m.is_int():
+      print("It's an integer")
+    elif m.is_float():
+      print("It's a float")
+
+async def master(ctx):
+  pid = await ctx.start(slave)
+  await ctx.send(pid, 1.2)
+```
+
+One tipical pattern is to have al infinite loop inside the agent and finish it with one type of message:
+
+```python
+async def slave(ctx):
+  while True:
+    async with get_message() as m:
+      if m.is_re("EXIT"):
+        break
+      else:
+        print(m.msg)
+
+async def master(ctx):
+  pid = await ctx.start(slave)
+  await ctx.send(pid, 1)
+  await ctx.send(pid, 2)
+  await ctx.send(pid, 3)
+  await ctx.send(pid, "EXIT")
+
+# Exit:
+# 1
+# 2
+# 3
+```
+
 ## Benchmark
 
-TODO
+Machine: i5-6500 (3.20GHz) / 16GB RAM
+
+| Example   | 1          | 10         | 100      | 1000    | 10000   | 100000    |
+| --------- | ---------- | ---------- | -------- | ------- | ------- | --------- |
+| PING-PONG | 0.00044 s. | 0.0018 s.  | 0.012 s. | 0.13 s. | 4.96 s. | 11.3 min. |

@@ -179,5 +179,8 @@ class RootContext(ContextDecorator, AgentMixin):
         self.loop.close()
         return False
 
-def get_agent_context(loop=asyncio.get_event_loop(), debug=False):
+def get_agent_context(loop=None, debug=False):
+    if not loop:
+        loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     return RootContext(loop, debug=debug)
