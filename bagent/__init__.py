@@ -14,6 +14,13 @@
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
-from bagent.core import get_agent_context
+import asyncio
+from bagent.core import RootContext
+
+def get_agent_context(loop=None, debug=False):
+    if not loop:
+        loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    return RootContext(loop, debug=debug)
 
 __ALL__ = [get_agent_context]

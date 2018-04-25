@@ -17,54 +17,10 @@
 
 import asyncio
 import logging
-import re
 from contextlib import ContextDecorator
+from bagent.messages import MessageContext
 
 logger = logging.getLogger(__name__)
-
-class MessageHandler(object):
-    def __init__(self, msg, sender, ctx):
-        self.ctx = ctx
-        self.msg = msg
-        self.sender = sender
-
-    def is_int(self):
-        return self.is_type(int)
-    def is_str(self):
-        return self.is_type(str)
-    def is_float(self):
-        return self.is_type(float)
-    def is_re(self, expr):
-        if not self.is_type(str):
-            return False
-        else:
-            p = re.compile(expr)
-            return p.match(self.msg) is not None
-    def is_type(self, clazz):
-        return isinstance(self.msg, clazz)
-
-    def respond(self, resp_msg):
-        self.respond_to(self.sender, resp_msg)
-
-    def respond_to(self, resp_pid, resp_msg):
-        self.ctx.send(resp_pid, resp_msg)
-
-class MessageContext:
-    def __init__(self, ctx):
-        self.ctx = ctx
-
-    def __enter__(self):
-        raise TypeError("Use async with instead")
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass # pragma: no cover
-
-    async def __aenter__(self):
-        (sender, msg) = await self.ctx.recv()
-        return MessageHandler(msg, sender, self.ctx)
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return False
 
 class AgentMixin(object):
     def __init__(self, loop, debug):
@@ -105,8 +61,8 @@ class AgentMixin(object):
         logger.debug("{0} waiting for message...".format(self.pid))
         return await self.messages.get()
 
-    def get_message(self):
-        return MessageContext(self)
+    def get_message(self, loop=False):
+        return MessageContext(self, loop)
 
     async def send(self, pid, msg, sender=None):
         if not sender:
@@ -198,9 +154,3 @@ class RootContext(ContextDecorator, AgentMixin):
         self.loop.run_until_complete(asyncio.wait(tasks))
         self.loop.close()
         return False
-
-def get_agent_context(loop=None, debug=False):
-    if not loop:
-        loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    return RootContext(loop, debug=debug)

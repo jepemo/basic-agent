@@ -16,7 +16,7 @@ Minimal &amp; Simple Agent Engine for Python
 ### Installation
 
 ```bash
-# Not yet: pip install bagent
+pip install bagent
 ```
 
 ## Example
