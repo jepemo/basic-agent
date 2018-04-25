@@ -60,10 +60,10 @@ class MessageHandler(object):
     def respond_to(self, resp_pid, resp_msg):
         self.ctx.send(resp_pid, resp_msg)
 
+
 class MessageContext:
-    def __init__(self, ctx, loop):
+    def __init__(self, ctx):
         self.ctx = ctx
-        self.loop = loop
 
     def __enter__(self):
         raise TypeError("Use async with instead")

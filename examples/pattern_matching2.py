@@ -21,15 +21,19 @@ async def agent_sender(ctx, pid_receiver):
     await ctx.send(pid_receiver, "hello")
     await ctx.send(pid_receiver, "12345")
     await ctx.send(pid_receiver, 1.2)
+    await ctx.send(pid_receiver, "EXIT")
 
 async def receiver(ctx):
     await ctx.start(agent_sender, ctx.pid)
 
-    async with ctx.get_message(loop=True) as m:
-        m.match_int(lambda x: print("Integer value:", x))
-        m.match_re('[0-9]+', lambda x: print("RE:", x))
-        m.match_str(lambda x: print("String value:", x))
-        m.match_float(lambda x: print("Float value:", x))
+    while True:
+        async with ctx.get_message() as m:
+            m.match_int(lambda x: print("Integer value:", x))
+            m.match_re('[0-9]+', lambda x: print("RE:", x))
+            if m.is_re("EXIT"):
+                break
+            m.match_str(lambda x: print("String value:", x))
+            m.match_float(lambda x: print("Float value:", x))
 
 with get_agent_context(debug=True) as ctx:
     pid_receiver = ctx.start(receiver)

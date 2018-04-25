@@ -61,8 +61,8 @@ class AgentMixin(object):
         logger.debug("{0} waiting for message...".format(self.pid))
         return await self.messages.get()
 
-    def get_message(self, loop=False):
-        return MessageContext(self, loop)
+    def get_message(self):
+        return MessageContext(self)
 
     async def send(self, pid, msg, sender=None):
         if not sender:
