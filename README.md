@@ -161,7 +161,7 @@ async def master(ctx):
 # 3
 ```
 
-## TODO:
+## TODO & Ideas:
   - Improvements agent context strategies:
     - Timeout for cancel all agents
     - Timetout warns agent is taking too much time.
@@ -176,3 +176,11 @@ async def master(ctx):
       # ...
       msg_handler.exit()
     ```
+  - Create especialized agent_context for an http/tcp server
+    - Every agent is a request
+  - Run code after the context depending of the state (error, strategy?)
+  - Delay starting agent (timeout param)
+  - Publish/Suscribe messaging model?
+  - Timeout in recv
+  - Shared (inmutable) data for an agent subtree (with a dictionary)?
+  - HA/Resilient strategies for failed agents?
