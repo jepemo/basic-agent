@@ -167,3 +167,12 @@ async def master(ctx):
     - Timetout warns agent is taking too much time.
     - Strategy waits until all agents ends (actual strategy, default)
     - Strategy cancel other agents when first finishes.
+  - Benchmark
+  - Improve loop management
+    - Creating specialized agent?
+    ```python3
+    @AgentReceiver
+    async def receiver(ctx, msg_handler):
+      # ...
+      msg_handler.exit()
+    ```
