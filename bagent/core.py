@@ -29,6 +29,7 @@ class AgentMixin(object):
         self.parent = None
         self.parent_pid = '0'
         self.agents = {}
+        self.tasks = {}
         self.loop = loop
         self.debug = debug
         self.pid = '0'
@@ -107,7 +108,8 @@ class AgentContext(AgentMixin):
         pid = self.create_agent(agent_fn, *args, **kwargs)
 
         agent = self.agents[pid]
-        asyncio.ensure_future(agent.execute())
+        task = asyncio.ensure_future(agent.execute())
+        self.tasks[pid] = task
 
         self.running_agents += 1
 
